@@ -21,19 +21,7 @@ public class MedicineController {
 			@RequestBody MedicineModel medicineModel
 	) {
 		try {
-			return ResponseEntity.status(HttpStatus.CREATED).body(medicineService.addMedicine(medicineModel));
-		} catch ( Exception e ) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
-	}
-
-	@PutMapping("/{id}")
-	public ResponseEntity<?> handleUpdateMedicine (
-			@RequestBody MedicineModel medicineModel,
-			@PathVariable int id
-	) {
-		try {
-			return ResponseEntity.ok(medicineService.updateMedicine(medicineModel, id));
+			return ResponseEntity.status(HttpStatus.CREATED).body(medicineService.addItem(medicineModel));
 		} catch ( Exception e ) {
 			return ResponseEntity.badRequest().body(e.getMessage());
 		}
@@ -45,18 +33,6 @@ public class MedicineController {
 	) {
 		try {
 			return ResponseEntity.ok(medicineService.getMedicineById(id));
-		} catch ( Exception e ) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
-	}
-
-	@DeleteMapping("/{id}")
-	public ResponseEntity<?> handleDeleteMedicineById (
-			@PathVariable int id
-	) {
-		try {
-			medicineService.deleteMedicineById(id);
-			return ResponseEntity.ok("Medicine deleted successfully");
 		} catch ( Exception e ) {
 			return ResponseEntity.badRequest().body(e.getMessage());
 		}
