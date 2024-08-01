@@ -15,15 +15,14 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "medicine")
-@EqualsAndHashCode ( callSuper = true )
-//@EntityListeners(value = AuditingEntityListener.class)
+@EqualsAndHashCode(callSuper = true)
 public class MedicineModel extends Auditable implements Serializable {
 
 	@Id
-	@GeneratedValue( strategy = GenerationType.IDENTITY )
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
 
-	@Column( nullable = false )
+	@Column(nullable = false)
 	private String name;
 
 	private String manufacturer;
@@ -32,18 +31,25 @@ public class MedicineModel extends Auditable implements Serializable {
 
 	private String dosage;
 
-	@Column( nullable = false )
+	@Column(nullable = false)
 	private int quantity;
 
-	@Column( nullable = false )
+	@Column(nullable = false)
 	private double price;
 
 	private float discount;
 
-//	@JsonFormat( pattern = "yyyy-MM-dd", timezone = "Asia/Kolkata", shape = JsonFormat.Shape.STRING, locale = "en_IN" )
-	private Map<Object, Integer> mfgDate;
+	@ElementCollection
+	@CollectionTable(name = "medicine_mfg_dates", joinColumns = @JoinColumn(name = "medicine_id"))
+	@MapKeyColumn(name = "mfg_date")
+	@Column(name = "quantity")
+	@JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Kolkata", shape = JsonFormat.Shape.STRING, locale = "en_IN")
+	private Map<LocalDate, Integer> mfgDates;
 
-	@Column( nullable = false )
-	@JsonFormat( pattern = "yyyy-MM-dd", timezone = "Asia/Kolkata", shape = JsonFormat.Shape.STRING, locale = "en_IN" )
-	private LocalDate expDate;
+	@ElementCollection
+	@CollectionTable(name = "medicine_exp_dates", joinColumns = @JoinColumn(name = "medicine_id"))
+	@MapKeyColumn(name = "exp_date")
+	@Column(name = "quantity")
+	@JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Kolkata", shape = JsonFormat.Shape.STRING, locale = "en_IN")
+	private Map<LocalDate, Integer> expDates;
 }
