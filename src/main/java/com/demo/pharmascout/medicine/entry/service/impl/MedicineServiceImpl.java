@@ -19,11 +19,24 @@ public class MedicineServiceImpl implements MedicineService {
 		this.repository = repository;
 	}
 
-	public void addItem ( MedicineModel medicineModel ) {
-		repository.findByName(medicineModel.getName()).ifPresentOrElse(
-				medicine -> updateMedicine(medicineModel, medicine.getId()),
-				() -> addMedicine(medicineModel)
-		);
+	public MedicineModel addItem ( MedicineModel medicineModel ) {
+		try {
+			Optional< MedicineModel > optionalMedicineModel = repository.findByName(medicineModel.getName());
+
+			if ( optionalMedicineModel.isPresent() ) {
+				MedicineModel model = optionalMedicineModel.get();
+				model.setQuantity(model.getQuantity() + medicineModel.getQuantity());
+				updateMedicineMfgDates(model, medicineModel);
+				updateMedicineExpDates(model, medicineModel);
+				return repository.save(model);
+			} else {
+				return addMedicine(medicineModel);
+			}
+
+		} catch ( Exception e ) {
+			log.error("Error while adding medicine: {}", e.getMessage());
+			throw new RuntimeException("Error while adding medicine");
+		}
 	}
 
 	@Override
@@ -34,25 +47,6 @@ public class MedicineServiceImpl implements MedicineService {
 		} catch ( Exception e ) {
 			log.error("Error while adding medicine: {}", e.getMessage());
 			throw new RuntimeException("Error while adding medicine");
-		}
-	}
-
-	@Override
-	public MedicineModel updateMedicine ( MedicineModel medicineModel, int id ) {
-		try {
-			MedicineModel model = repository.findById(id).orElseThrow(() -> new RuntimeException("Medicine not found"));
-			model.setName(medicineModel.getName());
-			model.setManufacturer(medicineModel.getManufacturer());
-			model.setGenericName(medicineModel.getGenericName());
-			model.setDosage(medicineModel.getDosage());
-			model.setQuantity(medicineModel.getQuantity());
-			model.setPrice(medicineModel.getPrice());
-			model.setDiscount(medicineModel.getDiscount());
-			model.setMfgDate(medicineModel.getMfgDate());
-			model.setExpDate(medicineModel.getExpDate());
-			return repository.save(model);
-		} catch ( Exception e ) {
-			throw new RuntimeException("Error while updating medicine");
 		}
 	}
 
@@ -73,20 +67,31 @@ public class MedicineServiceImpl implements MedicineService {
 	}
 
 	@Override
-	public void deleteMedicineById ( int id ) {
-		try {
-			repository.deleteById(id);
-		} catch ( Exception e ) {
-			throw new RuntimeException("Error while deleting medicine");
-		}
-	}
-
-	@Override
 	public List< MedicineModel > getAllMedicines () {
 		try {
 			return repository.findAll();
 		} catch ( Exception e ) {
 			throw new RuntimeException("Error while fetching medicines");
 		}
+	}
+
+	private void updateMedicineMfgDates ( MedicineModel model, MedicineModel medicineModel ) {
+		medicineModel.getMfgDates().forEach(( mfgDate, quantity ) -> {
+			if ( model.getMfgDates().containsKey(mfgDate) ) {
+				model.getMfgDates().put(mfgDate, model.getMfgDates().get(mfgDate) + quantity);
+			} else {
+				model.getMfgDates().put(mfgDate, quantity);
+			}
+		});
+	}
+
+	private void updateMedicineExpDates ( MedicineModel model, MedicineModel medicineModel ) {
+		medicineModel.getExpDates().forEach(( expDate, quantity ) -> {
+			if ( model.getExpDates().containsKey(expDate) ) {
+				model.getExpDates().put(expDate, model.getExpDates().get(expDate) + quantity);
+			} else {
+				model.getExpDates().put(expDate, quantity);
+			}
+		});
 	}
 }
