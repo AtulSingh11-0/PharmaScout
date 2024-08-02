@@ -61,7 +61,7 @@ public class ExpiredMedicineServiceImpl implements ExpiredMedicineService {
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 			LocalDate ld = LocalDate.from(formatter.parse(date));
 
-			List<MedicineModel> expiredMedicines = getExpiredMedicines(ld);
+			List<MedicineModel> expiredMedicines = fetchExpiredMedicinesfromMedicineTable(ld);
 			List<ExpiredMedicineModel> expiredMedicineModels = new ArrayList<>();
 			List<MedicineModel> medicinesToUpdate = new ArrayList<>();
 
@@ -94,7 +94,7 @@ public class ExpiredMedicineServiceImpl implements ExpiredMedicineService {
 		}
 	}
 
-	private List<MedicineModel> getExpiredMedicines(LocalDate date) {
+	private List<MedicineModel> fetchExpiredMedicinesfromMedicineTable ( LocalDate date) {
 		try {
 			return medicineRepository.findMedicinesExpiredBefore(date);
 		} catch (Exception e) {
