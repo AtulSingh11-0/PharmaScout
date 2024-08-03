@@ -1,9 +1,10 @@
 package com.demo.pharmascout.medicine.expired.service.impl;
 
+import com.demo.pharmascout.medicine.entry.model.ExpiryDates;
 import com.demo.pharmascout.medicine.entry.model.MedicineModel;
+import com.demo.pharmascout.medicine.entry.repository.ExpiryDatesRepository;
 import com.demo.pharmascout.medicine.entry.repository.MedicineRepository;
 import com.demo.pharmascout.medicine.expired.model.ExpiredMedicineModel;
-import com.demo.pharmascout.medicine.expired.repository.ExpiredMedicineRepository;
 import com.demo.pharmascout.medicine.expired.service.ExpiredMedicineService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,99 +18,63 @@ import java.util.Optional;
 @Slf4j
 @Service
 public class ExpiredMedicineServiceImpl implements ExpiredMedicineService {
-
-	private final ExpiredMedicineRepository expiredMedicineRepository;
+	
 	private final MedicineRepository medicineRepository;
+	private final ExpiryDatesRepository expiryDatesRepository;
 
 	public ExpiredMedicineServiceImpl(
-			ExpiredMedicineRepository expiredMedicineRepository,
-			MedicineRepository medicineRepository
+			MedicineRepository medicineRepository,
+			ExpiryDatesRepository expiryDatesRepository
 	) {
-		this.expiredMedicineRepository = expiredMedicineRepository;
 		this.medicineRepository = medicineRepository;
+		this.expiryDatesRepository = expiryDatesRepository;
 	}
 
+
 	@Override
-	public ExpiredMedicineModel addExpiredMedicine(MedicineModel medicineModel, int expiredQuantity) {
+	public ExpiredMedicineModel addExpiredMedicine ( MedicineModel medicineModel, int expiredQuantity ) {
 		try {
-			Optional<ExpiredMedicineModel> expiredMedicineByName = expiredMedicineRepository.findByName(medicineModel.getName());
-
-			if (expiredMedicineByName.isPresent()) {
-				ExpiredMedicineModel expiredMedicineModel = expiredMedicineByName.get();
-				expiredMedicineModel.setQuantity(expiredMedicineModel.getQuantity() + expiredQuantity);
-				return expiredMedicineRepository.save(expiredMedicineModel);
-			} else {
-				ExpiredMedicineModel builder = ExpiredMedicineModel.builder()
-						.name(medicineModel.getName())
-						.manufacturer(medicineModel.getManufacturer())
-						.genericName(medicineModel.getGenericName())
-						.dosage(medicineModel.getDosage())
-						.quantity(expiredQuantity)
-						.build();
-
-				return expiredMedicineRepository.save(builder);
-			}
-		} catch (Exception e) {
-			log.error("Error occurred while adding expired medicine: ", e);
-			throw new RuntimeException("Error occurred while adding expired medicine: ", e);
+			return new ExpiredMedicineModel();
+		} catch ( Exception e ) {
+			log.error("Error occurred while adding expired medicine: {}", e.getMessage());
+			throw new RuntimeException("Error occurred while adding expired medicine");
 		}
 	}
 
 	@Override
-	public List<ExpiredMedicineModel> getAllExpiredMedicines(String date) {
+	public List< MedicineModel > getAllExpiredMedicines ( String date ) {
 		try {
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-			LocalDate ld = LocalDate.from(formatter.parse(date));
+			LocalDate expiryDate = LocalDate.parse(date, formatter);
+			return fetchExpiredMedicines(expiryDate);
+		} catch ( Exception e ) {
+			log.error("Error occurred while fetching expired medicines: {}", e.getMessage());
+			throw new RuntimeException("Error occurred while fetching expired medicines");
+		}
+	}
 
-			List<MedicineModel> expiredMedicines = fetchExpiredMedicinesfromMedicineTable(ld);
-			List<ExpiredMedicineModel> expiredMedicineModels = new ArrayList<>();
-			List<MedicineModel> medicinesToUpdate = new ArrayList<>();
+	private List < MedicineModel > fetchExpiredMedicines ( LocalDate date ) {
+		try {
 
-			for (MedicineModel medicineModel : expiredMedicines) {
-				int totalExpiredQuantity = 0;
-				for (LocalDate expDate : new ArrayList<>(medicineModel.getExpDates().keySet())) {
-					int quantity = medicineModel.getExpDates().get(expDate);
-					if (expDate.isEqual(ld) || expDate.isBefore(ld)) {
-						totalExpiredQuantity += quantity;
-						medicineModel.getExpDates().remove(expDate);
-					}
-				}
-				if (totalExpiredQuantity > 0) {
-					expiredMedicineModels.add(addExpiredMedicine(medicineModel, totalExpiredQuantity));
-					if (totalExpiredQuantity == medicineModel.getQuantity()) {
-						deleteExpiredMedicine(medicineModel.getId());
-					} else {
-						medicineModel.setQuantity(medicineModel.getQuantity() - totalExpiredQuantity);
-						medicinesToUpdate.add(medicineModel);
-					}
-				}
+			List< ExpiryDates > expiryDates = expiryDatesRepository.findAllByExpiryDateBefore(date);
+			log.info("Fetched expiry dates: {}", expiryDates.size());
+			List < MedicineModel > expiredMedicines = new ArrayList <>();
+
+			if ( expiryDates.isEmpty() ) {
+				log.info("No expired medicines found");
+				return expiredMedicines;
 			}
 
-			medicineRepository.saveAll(medicinesToUpdate);
+			for ( ExpiryDates expiryDate : expiryDates ) {
+				Optional < MedicineModel > medicine = medicineRepository.findById(expiryDate.getMedicine().getId());
+				medicine.ifPresent(expiredMedicines::add);
+			}
+			log.info("Fetched expired medicines: {}", expiredMedicines.size());
+			return expiredMedicines;
 
-			return expiredMedicineModels;
-		} catch (Exception e) {
-			log.error("Error occurred while fetching all expired medicines: ", e);
-			throw new RuntimeException("Error occurred while fetching all expired medicines: ", e);
-		}
-	}
-
-	private List<MedicineModel> fetchExpiredMedicinesfromMedicineTable ( LocalDate date) {
-		try {
-			return medicineRepository.findMedicinesExpiredBefore(date);
-		} catch (Exception e) {
-			log.error("Error occurred while fetching expired medicines: ", e);
-			throw new RuntimeException("Error occurred while fetching expired medicines: ", e);
-		}
-	}
-
-	private void deleteExpiredMedicine(int id) {
-		try {
-			medicineRepository.deleteById(id);
-			log.info("Deleted expired medicine with id: " + id);
-		} catch (Exception e) {
-			log.error("Error occurred while deleting expired medicine: ", e);
-			throw new RuntimeException("Error occurred while deleting expired medicine: ", e);
+		} catch ( Exception e ) {
+			log.error("Error occurred while fetching expired medicines: {}", e.getMessage());
+			throw new RuntimeException("Error occurred while fetching expired medicines");
 		}
 	}
 }
