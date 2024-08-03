@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface MedicineRepository extends JpaRepository < MedicineModel, Integer >, CustomMedicineRepository {
-	Optional < MedicineModel > findById ( int id );
+public interface MedicineRepository extends JpaRepository < MedicineModel, Long > {
+//	Optional < MedicineModel > findById ( Long id );
 	Optional < MedicineModel > findByName ( String name );
 }
