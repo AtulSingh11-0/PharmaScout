@@ -1,26 +1,27 @@
 package com.demo.pharmascout.medicine.entry.model;
 
 import com.demo.pharmascout.audit.Auditable;
-import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.io.Serializable;
-import java.time.LocalDate;
-import java.util.Map;
+import java.util.Set;
 
-@Data
+@Getter
+@Setter
 @Entity
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "medicine")
-@EqualsAndHashCode(callSuper = true)
+@ToString(exclude = "expiryDates")
+@EqualsAndHashCode(callSuper = true, exclude = "expiryDates")
 public class MedicineModel extends Auditable implements Serializable {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private int id;
+	private Long id;
 
 	@Column(nullable = false)
 	private String name;
@@ -29,6 +30,7 @@ public class MedicineModel extends Auditable implements Serializable {
 
 	private String genericName;
 
+	@Column(nullable = false)
 	private String dosage;
 
 	@Column(nullable = false)
@@ -39,17 +41,8 @@ public class MedicineModel extends Auditable implements Serializable {
 
 	private float discount;
 
-	@ElementCollection
-	@CollectionTable(name = "medicine_mfg_dates", joinColumns = @JoinColumn(name = "medicine_id"))
-	@MapKeyColumn(name = "mfg_date")
-	@Column(name = "quantity")
-	@JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Kolkata", shape = JsonFormat.Shape.STRING, locale = "en_IN")
-	private Map<LocalDate, Integer> mfgDates;
+	@JsonManagedReference
+	@OneToMany(mappedBy = "medicine", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	private Set<ExpiryDates> expiryDates;
 
-	@ElementCollection
-	@CollectionTable(name = "medicine_exp_dates", joinColumns = @JoinColumn(name = "medicine_id"))
-	@MapKeyColumn(name = "exp_date")
-	@Column(name = "quantity")
-	@JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Kolkata", shape = JsonFormat.Shape.STRING, locale = "en_IN")
-	private Map<LocalDate, Integer> expDates;
 }
