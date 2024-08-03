@@ -1,6 +1,6 @@
 package com.demo.pharmascout.medicine.expired.controller;
 
-import com.demo.pharmascout.medicine.expired.model.ExpiredMedicineModel;
+import com.demo.pharmascout.medicine.entry.model.MedicineModel;
 import com.demo.pharmascout.medicine.expired.service.ExpiredMedicineService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,7 +21,7 @@ public class ExpiredMedicineController {
 	}
 
 	@GetMapping("/{date}")
-	public ResponseEntity< List < ExpiredMedicineModel > > handleGetAllExpiredMedicines(
+	public ResponseEntity< List < MedicineModel > > handleGetAllExpiredMedicines(
 			@PathVariable String date
 	) {
 		return ResponseEntity.ok(expiredMedicineService.getAllExpiredMedicines(date));
