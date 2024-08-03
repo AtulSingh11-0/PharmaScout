@@ -17,19 +17,19 @@ public class MedicineController {
 	}
 
 	@PostMapping("/")
-	public ResponseEntity<?> handleAddMedicine (
+	public ResponseEntity< ? > handleAddMedicine (
 			@RequestBody MedicineModel medicineModel
 	) {
 		try {
-			return ResponseEntity.status(HttpStatus.CREATED).body(medicineService.addItem(medicineModel));
+			return ResponseEntity.status(HttpStatus.CREATED).body(medicineService.addMedicine(medicineModel));
 		} catch ( Exception e ) {
 			return ResponseEntity.badRequest().body(e.getMessage());
 		}
 	}
 
 	@GetMapping("/{id}")
-	public ResponseEntity<?> handleGetMedicineById (
-			@PathVariable int id
+	public ResponseEntity< ? > handleGetMedicineById (
+			@PathVariable Long id
 	) {
 		try {
 			return ResponseEntity.ok(medicineService.getMedicineById(id));
