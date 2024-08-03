@@ -5,8 +5,8 @@ import com.demo.pharmascout.medicine.entry.model.MedicineModel;
 import java.util.List;
 
 public interface MedicineService {
-	public MedicineModel addItem(MedicineModel medicineModel);
-	public MedicineModel addMedicine(MedicineModel medicineModel);
-	public MedicineModel getMedicineById(int id);
+	public MedicineModel getMedicineById ( Long id );
 	public List< MedicineModel > getAllMedicines();
+	public MedicineModel addMedicine ( MedicineModel medicineModel );
+	public MedicineModel updateMedicine ( MedicineModel medicineModel, MedicineModel medicineToUpdate );
 }
