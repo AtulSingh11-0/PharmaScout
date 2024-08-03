@@ -1,37 +1,49 @@
 package com.demo.pharmascout.medicine.entry.service.impl;
 
+import com.demo.pharmascout.medicine.entry.model.ExpiryDates;
 import com.demo.pharmascout.medicine.entry.model.MedicineModel;
 import com.demo.pharmascout.medicine.entry.repository.MedicineRepository;
 import com.demo.pharmascout.medicine.entry.service.MedicineService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class MedicineServiceImpl implements MedicineService {
-
 	private final MedicineRepository repository;
 
-	public MedicineServiceImpl ( MedicineRepository repository ) {
-		this.repository = repository;
-	}
-
-	public MedicineModel addItem ( MedicineModel medicineModel ) {
+	public MedicineModel updateMedicine ( MedicineModel medicineModel, MedicineModel medicineToUpdate ) {
 		try {
-			Optional< MedicineModel > optionalMedicineModel = repository.findByName(medicineModel.getName());
 
-			if ( optionalMedicineModel.isPresent() ) {
-				MedicineModel model = optionalMedicineModel.get();
-				model.setQuantity(model.getQuantity() + medicineModel.getQuantity());
-				updateMedicineMfgDates(model, medicineModel);
-				updateMedicineExpDates(model, medicineModel);
-				return repository.save(model);
-			} else {
-				return addMedicine(medicineModel);
+			log.info("Updating medicine: {}", medicineModel); // log the medicineModel
+			medicineToUpdate.setQuantity(medicineToUpdate.getQuantity() + medicineModel.getQuantity()); // update the quantity
+
+			Map < LocalDate, ExpiryDates > expiryDatesMap = new HashMap<>(); // create a map for expiry dates
+
+			for ( ExpiryDates expiryDate : medicineToUpdate.getExpiryDates() ) { // iterate through the expiry dates
+				expiryDatesMap.put(expiryDate.getExpiryDate(), expiryDate); // put the expiry date in the map
 			}
+
+			for ( ExpiryDates newExpiryDate : medicineModel.getExpiryDates() ) {
+				ExpiryDates existingExpiryDate = expiryDatesMap.get(newExpiryDate.getExpiryDate());
+
+				if ( existingExpiryDate != null ) {
+					existingExpiryDate.setQuantity(existingExpiryDate.getQuantity() + newExpiryDate.getQuantity()); // update the quantity
+				} else {
+					newExpiryDate.setMedicine(medicineToUpdate); // set the medicine in the expiry date
+					medicineToUpdate.getExpiryDates().add(newExpiryDate); // add the expiry date to the medicine
+				}
+			}
+
+			return repository.save(medicineToUpdate); // save and return the updated medicine
 
 		} catch ( Exception e ) {
 			log.error("Error while adding medicine: {}", e.getMessage());
@@ -42,8 +54,16 @@ public class MedicineServiceImpl implements MedicineService {
 	@Override
 	public MedicineModel addMedicine ( MedicineModel medicineModel ) {
 		try {
-			log.info("Adding medicine: {}", medicineModel);
-			return repository.save(medicineModel);
+
+			Optional< MedicineModel > medicineByName = repository.findByName(medicineModel.getName()); // find the medicine by name
+
+			if ( medicineByName.isEmpty() ) { // check if the medicine is not present
+				log.info("Adding medicine: {}", medicineModel); // log the medicineModel
+				setMedicineExpiryDates(medicineModel); // set the medicine in the expiry dates
+				return repository.save(medicineModel); // save and return the medicine
+			} else { // if the medicine is present
+				return updateMedicine(medicineModel, medicineByName.get()); // update and return the medicine
+			}
 		} catch ( Exception e ) {
 			log.error("Error while adding medicine: {}", e.getMessage());
 			throw new RuntimeException("Error while adding medicine");
@@ -51,7 +71,7 @@ public class MedicineServiceImpl implements MedicineService {
 	}
 
 	@Override
-	public MedicineModel getMedicineById ( int id ) {
+	public MedicineModel getMedicineById ( Long id ) {
 		try {
 			Optional< MedicineModel > medicineModel = repository.findById(id);
 
@@ -75,23 +95,9 @@ public class MedicineServiceImpl implements MedicineService {
 		}
 	}
 
-	private void updateMedicineMfgDates ( MedicineModel model, MedicineModel medicineModel ) {
-		medicineModel.getMfgDates().forEach(( mfgDate, quantity ) -> {
-			if ( model.getMfgDates().containsKey(mfgDate) ) {
-				model.getMfgDates().put(mfgDate, model.getMfgDates().get(mfgDate) + quantity);
-			} else {
-				model.getMfgDates().put(mfgDate, quantity);
-			}
-		});
-	}
-
-	private void updateMedicineExpDates ( MedicineModel model, MedicineModel medicineModel ) {
-		medicineModel.getExpDates().forEach(( expDate, quantity ) -> {
-			if ( model.getExpDates().containsKey(expDate) ) {
-				model.getExpDates().put(expDate, model.getExpDates().get(expDate) + quantity);
-			} else {
-				model.getExpDates().put(expDate, quantity);
-			}
-		});
+	private void setMedicineExpiryDates(MedicineModel medicineModel) {
+		for (ExpiryDates expiryDate : medicineModel.getExpiryDates()) {
+			expiryDate.setMedicine(medicineModel);
+		}
 	}
 }
