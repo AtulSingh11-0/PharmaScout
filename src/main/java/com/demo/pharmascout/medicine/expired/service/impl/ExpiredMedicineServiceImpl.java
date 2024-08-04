@@ -48,19 +48,22 @@ public class ExpiredMedicineServiceImpl implements ExpiredMedicineService {
 
 				if ( expiredMedicineInDB.isPresent() ) {
 					expiredMedicineInDB.get().setQuantity(expiredMedicineInDB.get().getQuantity() + expiredMedicine.getQuantity());
+
+					expiredMedicine.getExpiryDates().stream().forEach(expDate -> { // Remove the expired date from the expiry dates table
+						if ( expDate.getExpiryDate().isEqual(expiryDate) || expDate.getExpiryDate().isBefore(expiryDate) ) {  // check if the expiry date is equal to the current date or before the current date
+							int expiredMedsQuantity = expDate.getQuantity(); // get the quantity of expired medicines
+							MedicineModel medicine = expDate.getMedicine(); // get the medicine
+							medicine.setQuantity(expDate.getMedicine().getQuantity() - expiredMedsQuantity); // reduce the quantity of the medicine
+							expDate.getMedicine().getExpiryDates().remove(expDate); // remove the expired medicine from the expiry dates
+							medicineRepository.save(medicine); // save the medicineay
+							expiryDatesRepository.delete(expDate);
+						}
+					});
 					expiredMedicines.add(expiredMedicineRepository.save(expiredMedicineInDB.get()));
 				} else {
-					ExpiredMedicineModel builder = ExpiredMedicineModel.builder()
-						.name(expiredMedicine.getName())
-						.manufacturer(expiredMedicine.getManufacturer())
-						.genericName(expiredMedicine.getGenericName())
-						.dosage(expiredMedicine.getDosage())
-						.quantity(expiredMedicine.getQuantity())
-						.build();
-				expiredMedicines.add(expiredMedicineRepository.save(builder));
+				expiredMedicines.add(expiredMedicineRepository.save(build(expiredMedicine)));
 				}
 			}
-
 			return expiredMedicines;
 		} catch ( Exception e ) {
 			log.error("Error occurred while fetching expired medicines: {}", e.getMessage());
@@ -91,5 +94,15 @@ public class ExpiredMedicineServiceImpl implements ExpiredMedicineService {
 			log.error("Error occurred while fetching expired medicines: {}", e.getMessage());
 			throw new RuntimeException("Error occurred while fetching expired medicines");
 		}
+	}
+
+	private ExpiredMedicineModel build ( MedicineModel medicineModel ) {
+		return ExpiredMedicineModel.builder()
+				.name(medicineModel.getName())
+				.manufacturer(medicineModel.getManufacturer())
+				.genericName(medicineModel.getGenericName())
+				.dosage(medicineModel.getDosage())
+				.quantity(medicineModel.getQuantity())
+				.build();
 	}
 }
