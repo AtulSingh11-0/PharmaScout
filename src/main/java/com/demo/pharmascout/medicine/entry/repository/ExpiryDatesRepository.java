@@ -7,5 +7,5 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface ExpiryDatesRepository extends JpaRepository < ExpiryDates, LocalDate > {
-	List< ExpiryDates > findAllByExpiryDateBefore ( LocalDate date );
+	List< ExpiryDates > findAllByExpiryDateIsLessThanEqual ( LocalDate date );
 }
