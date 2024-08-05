@@ -7,5 +7,6 @@ import java.util.List;
 
 public interface ExpiredMedicineService {
 	public ExpiredMedicineModel addExpiredMedicine( MedicineModel medicineModel, int expiredQuantity);
-	public List < ExpiredMedicineModel > getAllExpiredMedicines ( String date);
+	public ExpiredMedicineModel updateExpiredMedicine( ExpiredMedicineModel expiredMedicineModel, int expiredQuantity);
+	public List< ExpiredMedicineModel > getAllExpiredMedicines ( String date);
 }
