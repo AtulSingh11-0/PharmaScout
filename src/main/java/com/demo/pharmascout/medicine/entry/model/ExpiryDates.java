@@ -33,4 +33,7 @@ public class ExpiryDates {
 	@JoinColumn (name = "medicine_id", referencedColumnName = "id")
 	private MedicineModel medicine;
 
+	@Column (nullable = false)
+	private boolean isExpired = false;
+
 }
