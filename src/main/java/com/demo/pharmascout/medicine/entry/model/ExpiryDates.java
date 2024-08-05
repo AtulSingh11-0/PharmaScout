@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 
 @Getter
@@ -16,7 +17,7 @@ import java.time.LocalDate;
 @Table(name = "expiry_dates")
 @ToString(exclude = "medicine")
 @EqualsAndHashCode(of = {"expiryDate"})
-public class ExpiryDates {
+public class ExpiryDates implements Serializable {
 
 	@Id
 	@GeneratedValue (strategy = GenerationType.IDENTITY)
