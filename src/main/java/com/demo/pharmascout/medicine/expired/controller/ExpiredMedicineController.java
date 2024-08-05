@@ -21,7 +21,7 @@ public class ExpiredMedicineController {
 	}
 
 	@GetMapping("/{date}")
-	public ResponseEntity< List < ExpiredMedicineModel > > handleGetAllExpiredMedicines(
+	public ResponseEntity< List< ExpiredMedicineModel > > handleGetAllExpiredMedicines(
 			@PathVariable String date
 	) {
 		return ResponseEntity.ok(expiredMedicineService.getAllExpiredMedicines(date));
