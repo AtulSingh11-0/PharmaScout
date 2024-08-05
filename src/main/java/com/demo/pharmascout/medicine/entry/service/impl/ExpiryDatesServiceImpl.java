@@ -16,16 +16,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ExpiryDatesServiceImpl implements ExpiryDatesService {
 
-	private final MedicineRepository medicineRepository;
 	private final MedicineService medicineService;
+	private final MedicineRepository medicineRepository;
 	private final ExpiryDatesRepository expiryDatesRepository;
 
 	@Override
 	public void setMedicinesAsExpired ( List< ExpiryDates > expiryDates ) {
 		try {
-			for ( ExpiryDates expiryDate : expiryDates ) {
-				updateExpiryDates(expiryDate);
-				medicineService.updateMedicineQuantity(expiryDate.getMedicine(), expiryDate.getQuantity());
+			for ( ExpiryDates expiryDate : expiryDates ) { // iterate through the expiry dates
+				updateExpiryDates(expiryDate); // update the expiry dates
+				medicineService.updateMedicineQuantity(expiryDate.getMedicine(), expiryDate.getQuantity()); // update the medicine quantity
 			}
 		} catch ( Exception e ) {
 			log.error("Error occurred while setting medicines as expired: {}", e.getMessage());
@@ -36,8 +36,8 @@ public class ExpiryDatesServiceImpl implements ExpiryDatesService {
 	@Override
 	public void updateExpiryDates ( ExpiryDates expiryDates ) {
 		try {
-			expiryDates.setExpired(true);
-			expiryDatesRepository.save(expiryDates);
+			expiryDates.setExpired(true); // set the expiry date as expired
+			expiryDatesRepository.save(expiryDates); // save the expiry date
 		} catch ( Exception e ) {
 			log.error("Error occurred while updating expiry dates: {}", e.getMessage());
 			throw new RuntimeException("Error occurred while updating expiry dates");
