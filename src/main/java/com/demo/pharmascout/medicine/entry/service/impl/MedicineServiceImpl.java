@@ -58,8 +58,8 @@ public class MedicineServiceImpl implements MedicineService {
 			Optional< MedicineModel > medicineByName = repository.findByName(medicineModel.getName()); // find the medicine by name
 
 			if ( medicineByName.isEmpty() ) { // check if the medicine is not present
-				log.info("Adding medicine: {}", medicineModel); // log the medicineModel
 				setMedicineExpiryDates(medicineModel); // set the medicine in the expiry dates
+				log.info("Adding medicine: {}", medicineModel); // log the medicineModel
 				return repository.save(medicineModel); // save and return the medicine
 			} else { // if the medicine is present
 				return updateMedicine(medicineModel, medicineByName.get()); // update and return the medicine
@@ -67,6 +67,26 @@ public class MedicineServiceImpl implements MedicineService {
 		} catch ( Exception e ) {
 			log.error("Error while adding medicine: {}", e.getMessage());
 			throw new RuntimeException("Error while adding medicine");
+		}
+	}
+
+	@Override
+	public void updateMedicineQuantity ( MedicineModel medicineModel, int quantity ) {
+		try {
+			if ( medicineModel.getQuantity() == quantity ) {
+				log.info("Deleting medicine: {}", medicineModel); // log the medicineModel
+				repository.delete(medicineModel); // delete the medicine
+			} else {
+				log.info("Updating medicine quantity: {}", medicineModel); // log the medicineModel
+				medicineModel.setQuantity(medicineModel.getQuantity() - quantity); // update the quantity
+				if ( medicineModel.getQuantity() < 0 ) {
+					repository.delete(medicineModel); // delete the medicine if the quantity is less than 0
+				}
+				repository.save(medicineModel); // save the medicine
+			}
+		} catch ( Exception e ) {
+			log.error("Error while updating medicine quantity: {}", e.getMessage());
+			throw new RuntimeException("Error while updating medicine quantity");
 		}
 	}
 
