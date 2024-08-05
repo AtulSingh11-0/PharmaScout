@@ -42,7 +42,12 @@ public class MedicineModel extends Auditable implements Serializable {
 	private float discount;
 
 	@JsonManagedReference
-	@OneToMany(mappedBy = "medicine", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	@OneToMany(
+			mappedBy = "medicine",
+			fetch = FetchType.LAZY,
+			cascade = CascadeType.ALL,
+			orphanRemoval = true
+	)
 	private Set<ExpiryDates> expiryDates;
 
 }
