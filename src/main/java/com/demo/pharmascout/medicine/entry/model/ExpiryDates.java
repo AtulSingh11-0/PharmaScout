@@ -22,15 +22,26 @@ public class ExpiryDates {
 	@GeneratedValue (strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@JsonFormat (pattern = "yyyy-MM-dd", timezone = "Asia/Kolkata", shape = JsonFormat.Shape.STRING, locale = "en_IN")
+	@JsonFormat (
+			pattern = "yyyy-MM-dd",
+			timezone = "Asia/Kolkata",
+			shape = JsonFormat.Shape.STRING,
+			locale = "en_IN"
+	)
 	private LocalDate expiryDate;
 
 	@Column (nullable = false)
 	private int quantity;
 
 	@JsonBackReference
-	@ManyToOne (fetch = FetchType.LAZY, optional = false)
-	@JoinColumn (name = "medicine_id", referencedColumnName = "id")
+	@ManyToOne (
+			fetch = FetchType.LAZY,
+			optional = false
+	)
+	@JoinColumn (
+			name = "medicine_id",
+			referencedColumnName = "id"
+	)
 	private MedicineModel medicine;
 
 	@Column (nullable = false)
