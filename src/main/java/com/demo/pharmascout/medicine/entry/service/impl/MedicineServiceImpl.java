@@ -18,6 +18,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class MedicineServiceImpl implements MedicineService {
+
 	private final MedicineRepository repository;
 
 	public MedicineModel updateMedicine ( MedicineModel medicineModel, MedicineModel medicineToUpdate ) {
@@ -33,7 +34,7 @@ public class MedicineServiceImpl implements MedicineService {
 			}
 
 			for ( ExpiryDates newExpiryDate : medicineModel.getExpiryDates() ) {
-				ExpiryDates existingExpiryDate = expiryDatesMap.get(newExpiryDate.getExpiryDate());
+				ExpiryDates existingExpiryDate = expiryDatesMap.get(newExpiryDate.getExpiryDate()); // get the expiry date from the map
 
 				if ( existingExpiryDate != null ) {
 					existingExpiryDate.setQuantity(existingExpiryDate.getQuantity() + newExpiryDate.getQuantity()); // update the quantity
