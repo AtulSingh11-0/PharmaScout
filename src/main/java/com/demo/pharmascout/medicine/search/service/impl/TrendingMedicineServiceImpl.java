@@ -44,7 +44,7 @@ public class TrendingMedicineServiceImpl implements TrendingMedicineService {
 				return searchedMedicine.get();
 			} else { // if the medicine is not found, return null
 				log.error("Error while fetching trending medicines");
-				return null;
+				return buildMedicineModelForNotFound(name);
 			}
 
 		} catch ( Exception e ) {
@@ -68,6 +68,19 @@ public class TrendingMedicineServiceImpl implements TrendingMedicineService {
 				.name(name)
 				.quantity(quantity)
 				.date(date)
+				.build();
+	}
+
+	private MedicineModel buildMedicineModelForNotFound ( String name ) {
+		return MedicineModel.builder()
+				.name("No medicine found")
+				.manufacturer("nil")
+				.genericName(name)
+				.dosage("nil")
+				.quantity(0)
+				.price(0.0)
+				.discount(0.0f)
+				.expiryDates(null)
 				.build();
 	}
 
