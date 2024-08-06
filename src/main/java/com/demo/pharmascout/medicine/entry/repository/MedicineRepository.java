@@ -7,6 +7,8 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface MedicineRepository extends JpaRepository < MedicineModel, Long > {
-	Optional < MedicineModel > findByName ( String name );
+public interface MedicineRepository extends JpaRepository< MedicineModel, Long > {
+	Optional< MedicineModel > findByName ( String name );
+
+	Optional< MedicineModel > findByGenericName ( String genericName );
 }
