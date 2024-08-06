@@ -2,21 +2,19 @@ package com.demo.pharmascout.medicine.entry.controller;
 
 import com.demo.pharmascout.medicine.entry.model.MedicineModel;
 import com.demo.pharmascout.medicine.entry.service.MedicineService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/medicine")
+@RequestMapping ( "/api/v1/medicine" )
+@RequiredArgsConstructor
 public class MedicineController {
 
 	private final MedicineService medicineService;
 
-	public MedicineController(MedicineService medicineService) {
-		this.medicineService = medicineService;
-	}
-
-	@PostMapping("/")
+	@PostMapping ( "/" )
 	public ResponseEntity< ? > handleAddMedicine (
 			@RequestBody MedicineModel medicineModel
 	) {
@@ -27,7 +25,7 @@ public class MedicineController {
 		}
 	}
 
-	@GetMapping("/{id}")
+	@GetMapping ( "/{id}" )
 	public ResponseEntity< ? > handleGetMedicineById (
 			@PathVariable Long id
 	) {
@@ -38,8 +36,8 @@ public class MedicineController {
 		}
 	}
 
-	@GetMapping("/")
-	public ResponseEntity<?> handleGetAllMedicines () {
+	@GetMapping ( "/" )
+	public ResponseEntity< ? > handleGetAllMedicines () {
 		try {
 			return ResponseEntity.ok(medicineService.getAllMedicines());
 		} catch ( Exception e ) {
