@@ -6,7 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.io.Serializable;
-import java.util.Set;
+import java.util.SortedSet;
 
 @Getter
 @Setter
@@ -48,6 +48,6 @@ public class MedicineModel extends Auditable implements Serializable {
 			cascade = CascadeType.ALL,
 			orphanRemoval = true
 	)
-	private Set<ExpiryDates> expiryDates;
+	private SortedSet<ExpiryDates> expiryDates;
 
 }
