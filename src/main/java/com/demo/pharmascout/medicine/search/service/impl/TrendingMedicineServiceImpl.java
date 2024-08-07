@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -21,7 +22,7 @@ public class TrendingMedicineServiceImpl implements TrendingMedicineService {
 	private final TrendingMedicineRepository trendingMedicineRepository;
 
 	@Override
-	public MedicineModel getTrendingMedicine ( LocalDate date, String name, int quantity ) {
+	public List< MedicineModel > getTrendingMedicine ( LocalDate date, String name, int quantity ) {
 		try {
 			// search for the medicine in the trending medicines table
 			trendingMedicineRepository.findTrendingMedicineByDateEqualsAndNameEqualsIgnoreCase(date, name)
@@ -37,14 +38,14 @@ public class TrendingMedicineServiceImpl implements TrendingMedicineService {
 					);
 
 			// search for the medicine in the medicine table
-			Optional< MedicineModel > searchedMedicine = medicineRepository.findByGenericName(name);
+			Optional< List< MedicineModel > > searchedMedicine = medicineRepository.findAllByGenericName(name);
 
 			if ( searchedMedicine.isPresent() ) { // if the medicine is found, return the medicine
 				log.info("Trending medicines fetched successfully: {}", searchedMedicine.get());
 				return searchedMedicine.get();
 			} else { // if the medicine is not found, return null
 				log.error("Error while fetching trending medicines");
-				return buildMedicineModelForNotFound(name);
+				return List.of(buildMedicineModelForNotFound(name));
 			}
 
 		} catch ( Exception e ) {
