@@ -17,7 +17,7 @@ import java.time.LocalDate;
 @Table(name = "expiry_dates")
 @ToString(exclude = "medicine")
 @EqualsAndHashCode(of = {"expiryDate"})
-public class ExpiryDates implements Serializable {
+public class ExpiryDates implements Serializable, Comparable< ExpiryDates > {
 
 	@Id
 	@GeneratedValue (strategy = GenerationType.IDENTITY)
@@ -48,4 +48,8 @@ public class ExpiryDates implements Serializable {
 	@Column (nullable = false)
 	private boolean isExpired = false;
 
+	@Override
+	public int compareTo ( ExpiryDates o ) {
+		return this.expiryDate.compareTo(o.expiryDate);
+	}
 }
