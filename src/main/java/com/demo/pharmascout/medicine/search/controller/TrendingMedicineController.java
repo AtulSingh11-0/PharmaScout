@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @RestController
 @RequestMapping ( "/api/v1/trending-medicine" )
@@ -25,7 +24,7 @@ public class TrendingMedicineController {
 			@RequestParam ( value = "quantity", required = true ) int quantity
 	) {
 		try {
-			List< MedicineModel > trendingMedicine = service.getTrendingMedicine(LocalDate.now(), name, quantity);
+			MedicineModel trendingMedicine = service.getTrendingMedicine(LocalDate.now(), name, quantity);
 			return ResponseEntity.ok(trendingMedicine);
 		} catch ( Exception e ) {
 			return ResponseEntity.badRequest().body(e.getMessage());
