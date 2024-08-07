@@ -2,11 +2,13 @@ package com.demo.pharmascout.medicine.entry.service.impl;
 
 import com.demo.pharmascout.medicine.entry.model.ExpiryDates;
 import com.demo.pharmascout.medicine.entry.model.MedicineModel;
+import com.demo.pharmascout.medicine.entry.repository.ExpiryDatesRepository;
 import com.demo.pharmascout.medicine.entry.repository.MedicineRepository;
 import com.demo.pharmascout.medicine.entry.service.MedicineService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.HashMap;
@@ -19,7 +21,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class MedicineServiceImpl implements MedicineService {
 
-	private final MedicineRepository repository;
+	private final MedicineRepository medicineRepository;
+	private final ExpiryDatesRepository expiryDatesRepository;
 
 	public MedicineModel updateMedicine ( MedicineModel medicineModel, MedicineModel medicineToUpdate ) {
 		try {
@@ -44,7 +47,7 @@ public class MedicineServiceImpl implements MedicineService {
 				}
 			}
 
-			return repository.save(medicineToUpdate); // save and return the updated medicine
+			return medicineRepository.save(medicineToUpdate); // save and return the updated medicine
 
 		} catch ( Exception e ) {
 			log.error("Error while adding medicine: {}", e.getMessage());
@@ -56,12 +59,12 @@ public class MedicineServiceImpl implements MedicineService {
 	public MedicineModel addMedicine ( MedicineModel medicineModel ) {
 		try {
 
-			Optional< MedicineModel > medicineByName = repository.findByName(medicineModel.getName()); // find the medicine by name
+			Optional< MedicineModel > medicineByName = medicineRepository.findByName(medicineModel.getName()); // find the medicine by name
 
 			if ( medicineByName.isEmpty() ) { // check if the medicine is not present
 				setMedicineExpiryDates(medicineModel); // set the medicine in the expiry dates
 				log.info("Adding medicine: {}", medicineModel); // log the medicineModel
-				return repository.save(medicineModel); // save and return the medicine
+				return medicineRepository.save(medicineModel); // save and return the medicine
 			} else { // if the medicine is present
 				return updateMedicine(medicineModel, medicineByName.get()); // update and return the medicine
 			}
@@ -72,20 +75,21 @@ public class MedicineServiceImpl implements MedicineService {
 	}
 
 	@Override
-	public void updateMedicineQuantity ( MedicineModel medicineModel, int quantity ) {
+	@Transactional
+	public void updateMedicineQuantity(MedicineModel medicineModel, int quantity) {
 		try {
-			if ( medicineModel.getQuantity() == quantity ) {
+			if (medicineModel.getQuantity() == quantity || medicineModel.getQuantity() < quantity) {
 				log.info("Deleting medicine: {}", medicineModel); // log the medicineModel
-				repository.delete(medicineModel); // delete the medicine
+				medicineRepository.delete(medicineModel); // delete the medicine
 			} else {
 				log.info("Updating medicine quantity: {}", medicineModel); // log the medicineModel
 				medicineModel.setQuantity(medicineModel.getQuantity() - quantity); // update the quantity
-				if ( medicineModel.getQuantity() < 0 ) {
-					repository.delete(medicineModel); // delete the medicine if the quantity is less than 0
-				}
-				repository.save(medicineModel); // save the medicine
+				medicineRepository.save(medicineModel); // save the medicine
 			}
-		} catch ( Exception e ) {
+			if (medicineModel.getQuantity() <= 0) {
+				medicineRepository.delete(medicineModel); // delete the medicine if the quantity is less than or equal to 0
+			}
+		} catch (Exception e) {
 			log.error("Error while updating medicine quantity: {}", e.getMessage());
 			throw new RuntimeException("Error while updating medicine quantity");
 		}
@@ -94,7 +98,7 @@ public class MedicineServiceImpl implements MedicineService {
 	@Override
 	public MedicineModel getMedicineById ( Long id ) {
 		try {
-			Optional< MedicineModel > medicineModel = repository.findById(id);
+			Optional< MedicineModel > medicineModel = medicineRepository.findById(id);
 
 			if ( medicineModel.isPresent() ) {
 				return medicineModel.get();
@@ -110,7 +114,7 @@ public class MedicineServiceImpl implements MedicineService {
 	@Override
 	public List< MedicineModel > getAllMedicines () {
 		try {
-			return repository.findAll();
+			return medicineRepository.findAll();
 		} catch ( Exception e ) {
 			throw new RuntimeException("Error while fetching medicines");
 		}
