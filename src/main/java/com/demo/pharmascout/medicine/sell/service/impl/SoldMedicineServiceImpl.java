@@ -13,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.SortedSet;
 
@@ -76,8 +78,8 @@ public class SoldMedicineServiceImpl implements SoldMedicineService {
 			discountedPrice = unDiscountedPrice - (unDiscountedPrice * medicine.getDiscount() / 100); // calculate the discounted price
 			checkSoldMedicineInDB(medicine, quantity, discountedPrice, unDiscountedPrice); // save the sold medicine
 
-			updateExpiryDatesQuantity(medicine.getExpiryDates(), quantity); // update the expiry dates
 			medicineService.updateMedicineQuantity( medicine, quantity ); // update the quantity of the medicine
+			updateExpiryDatesQuantity(medicine.getExpiryDates(), quantity); // update the expiry dates
 
 			return discountedPrice; // return the discounted price
 		} catch ( Exception e ) {
@@ -111,22 +113,43 @@ public class SoldMedicineServiceImpl implements SoldMedicineService {
 	* TODO: Update the expiry dates quantity
 	*  1. for expdate with quantity 65 and my quantity 120, its throwing error, solve this
 	* */
-	private void updateExpiryDatesQuantity ( SortedSet< ExpiryDates > expiryDates, int quantity ) {
+	private void updateExpiryDatesQuantity(SortedSet<ExpiryDates> expiryDates, int quantity) {
 		try {
-			for ( ExpiryDates expiryDate : expiryDates ) { // iterate through the expiry dates
-				if ( expiryDate.getQuantity() >= quantity ) {
-					expiryDate.setQuantity( expiryDate.getQuantity() - quantity ); // update the quantity
+			log.info("Quantity: {}", quantity);
+			List<ExpiryDates> toDelete = new ArrayList<>();
+			List<ExpiryDates> toUpdate = new ArrayList<>();
+
+			for (ExpiryDates expiryDate : expiryDates) {
+				log.info("Expiry Date: {}", expiryDate);
+
+				if (quantity <= 0) {
+					// If there's no quantity left to deduct, we can break out of the loop
 					break;
-				} else {
-					quantity -= expiryDate.getQuantity();
-					expiryDate.setQuantity( 0 );
 				}
-				expiryDatesService.updateExpiryDates( expiryDate ); // update the expiry date
+
+				if (expiryDate.getQuantity() <= quantity) {
+					// If the expiryDate quantity is less than or equal to the remaining quantity:
+					// Deduct the entire quantity of this expiryDate from the remaining quantity
+					quantity -= expiryDate.getQuantity();
+					expiryDate.setQuantity(0); // This expiryDate is fully consumed
+					toDelete.add(expiryDate); // Add this entry to the delete list
+				} else {
+					// If the expiryDate quantity is greater than the remaining quantity:
+					// Deduct only the remaining quantity from the expiryDate
+					expiryDate.setQuantity(expiryDate.getQuantity() - quantity);
+					quantity = 0; // All the quantity to deduct has been consumed
+					toUpdate.add(expiryDate); // Add this entry to the update list
+				}
 			}
-		} catch ( Exception e ) {
-			log.error( "Error occurred while updating expiry dates: {}", e.getMessage() );
-			throw new RuntimeException( "Error occurred while updating expiry dates" );
+
+			// Ensure entities are updated or deleted within a transaction
+			expiryDatesService.updateExpiryDatesList(toDelete, toUpdate);
+
+		} catch (Exception e) {
+			log.error("Error occurred while updating expiry dates: {}", e.getMessage());
+			throw new RuntimeException("Error occurred while updating expiry dates");
 		}
 	}
+
 
 }
